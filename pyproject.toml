@@ -1,0 +1,23 @@
+[project]
+name = "mortal-bot"
+version = "0.1.0"
+description = "Mortal RL mahjong bot — wraps libriichi (precompiled) + PyTorch"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+    "requests>=2.28",
+]
+
+# `libriichi.so` / `libriichi.pyd` are precompiled extensions shipped in
+# this directory (and selected per-platform from `libriichi/` for users
+# who want to swap). They are not installable from PyPI and intentionally
+# not declared as a dep — Python's import machinery picks up the .so/.pyd
+# from the current working directory, which is the bot dir under Akagi.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = []
