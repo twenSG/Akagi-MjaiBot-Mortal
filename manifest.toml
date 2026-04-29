@@ -1,14 +1,12 @@
 manifest_version = 1
 
 [bot]
-name        = "mortal"
-display     = "Mortal"
-description = "Deep-RL mahjong bot. Wraps libriichi (precompiled) + PyTorch. Optional online inference via API server."
-version     = "0.1.0"
+name             = "mortal"
+display          = "Mortal"
+description      = "Deep-RL mahjong bot. Wraps libriichi (precompiled) + PyTorch. Optional online inference via API server."
+version          = "0.1.0"
+supported_modes  = ["4p"]
 
-# [bot.source] is intentionally omitted — Mortal weights (mortal.pth) are
-# license-restricted and not redistributable from a public release. Use the
-# manual install layout below and place mortal.pth yourself.
 
 [settings.online]
 type    = "bool"
