@@ -2,11 +2,14 @@ import json
 import sys
 
 import model
+from libriichi.state import PlayerState  # type: ignore[import-not-found]
+from meta_show import meta_to_top_show
 
 class Bot:
     def __init__(self):
         self.player_id: int = None
         self.model = None
+        self.state: PlayerState | None = None
         # ========== Online Server =========== #
         model.online_settings_init()
         # ==================================== #
@@ -75,14 +78,27 @@ class Bot:
             if e["type"] == "start_game":
                 self.player_id = e["id"]
                 self.model = model.load_model(self.player_id)
+                self.state = PlayerState(self.player_id)
                 continue
             if self.model is None or self.player_id is None:
                 continue
             if e["type"] == "end_game":
                 self.player_id = None
                 self.model = None
+                self.state = None
                 continue
-            return_action = self.model.react(json.dumps(e, separators=(",", ":")))
+            event_json = json.dumps(e, separators=(",", ":"))
+            return_action = self.model.react(event_json)
+            # Mirror the bot's view of the game on a parallel PlayerState
+            # so we can resolve chi/pon/kan/hora tiles for `meta.show`.
+            # Failures here must never poison the action returned to the
+            # host — log + continue.
+            if self.state is not None:
+                try:
+                    self.state.update(event_json)
+                except Exception as exc:
+                    sys.stderr.write(f"player_state.update failed: {exc}\n")
+                    sys.stderr.flush()
 
         if return_action is None:
             # ========== Online Server =========== #
@@ -99,21 +115,26 @@ class Bot:
             # ==================================== #
             return return_action
         else:
+            raw_data = json.loads(return_action)
             # ========== Online Server =========== #
             if model.ot_settings['online']:
-                if "meta" in return_action:
-                    raw_data = json.loads(return_action)
+                if "meta" in raw_data:
                     raw_data["meta"]["online"] = model.is_online
-                    return_action = json.dumps(raw_data, separators=(",", ":"))
                 else:
-                    raw_data = json.loads(return_action)
                     raw_data["meta"] = {"online": model.is_online}
-                    return_action = json.dumps(raw_data, separators=(",", ":"))
             # ==================================== #
-            # raw_data = json.loads(return_action)
-            # del raw_data["meta"]
-            # return json.dumps(raw_data, separators=(",", ":"))
-            return return_action
+            # Top-3 from q_values + mask_bits → meta.show. Skipped when
+            # the bot didn't emit q_values (e.g. degenerate `none`).
+            meta = raw_data.get("meta")
+            if meta and "q_values" in meta and "mask_bits" in meta and self.state is not None:
+                try:
+                    show = meta_to_top_show(meta, self.state, is_3p=False)
+                    if show.get("items"):
+                        meta["show"] = show
+                except Exception as exc:
+                    sys.stderr.write(f"meta_to_top_show failed: {exc}\n")
+                    sys.stderr.flush()
+            return json.dumps(raw_data, separators=(",", ":"))
 
 def main() -> None:
     bot = Bot()
