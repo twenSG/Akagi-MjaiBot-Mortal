@@ -427,7 +427,7 @@ def load_model(seat: int) -> Bot:
 
     # Get the path of control_state_file = current directory / control_state_file
     control_state_file = pathlib.Path(__file__).parent / control_state_file
-    state = torch.load(control_state_file, map_location=device)
+    state = torch.load(control_state_file, map_location=device, weights_only=False)
 
     mortal = Brain(version=state['config']['control']['version'], conv_channels=state['config']['resnet']['conv_channels'], num_blocks=state['config']['resnet']['num_blocks']).eval()
     dqn = DQN(version=state['config']['control']['version']).eval()
