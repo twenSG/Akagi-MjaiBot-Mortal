@@ -9,12 +9,6 @@ dependencies = [
     "requests>=2.28",
 ]
 
-# `libriichi.so` / `libriichi.pyd` are precompiled extensions shipped in
-# this directory (and selected per-platform from `libriichi/` for users
-# who want to swap). They are not installable from PyPI and intentionally
-# not declared as a dep — Python's import machinery picks up the .so/.pyd
-# from the current working directory, which is the bot dir under Akagi.
-
 # Bot is a script (bot.py), not a library — uv installs only deps and
 # skips building the project itself.
 [tool.uv]

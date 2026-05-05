@@ -8,6 +8,13 @@ import requests
 import traceback
 import numpy as np
 
+# Picks the per-OS / per-arch / per-Python prebuilt libriichi from
+# ``libriichi/`` and registers it in ``sys.modules`` before the import
+# below resolves. Must run before any ``from libriichi... import ...``.
+import _libriichi_loader
+
+_libriichi_loader.load()
+
 from torch import nn, Tensor
 from torch.nn import functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence

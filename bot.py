@@ -1,6 +1,11 @@
 import json
 import sys
 
+# Loader runs first so ``libriichi`` resolves to the right prebuilt
+# extension regardless of import order with ``model``.
+import _libriichi_loader
+
+_libriichi_loader.load()
 import model
 from libriichi.state import PlayerState  # type: ignore[import-not-found]
 from meta_show import meta_to_top_show
